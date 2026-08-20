@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختبار — Functional Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124,58,237,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(0,212,255,0.1) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  #app { position: relative; z-index: 1; }
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeUp .4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* HOME */
+  #homeScreen {
+    min-height: 100vh; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 20px; text-align: center;
+  }
+  #homeScreen.active { display: flex; }
+  .logo-ring {
+    width: 100px; height: 100px; border-radius: 50%;
+    border: 3px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px;
+    box-shadow: var(--glow), inset 0 0 20px rgba(0,212,255,0.1);
+    animation: pulse 3s ease-in-out infinite;
+    margin-bottom: 28px;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: var(--glow), inset 0 0 20px rgba(0,212,255,0.1); }
+    50%      { box-shadow: 0 0 40px rgba(0,212,255,0.5), inset 0 0 30px rgba(0,212,255,0.2); }
+  }
+  .home-title {
+    font-size: clamp(24px,5vw,40px); font-weight: 900; letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 8px;
+  }
+  .home-sub { font-size: 14px; color: var(--muted); margin-bottom: 6px; direction: ltr; }
+  .home-sub2 { font-size: 13px; color: var(--muted); margin-bottom: 32px; direction: rtl; }
+
+  .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+  .stat-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 50px; padding: 8px 20px; font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stat-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .mode-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px; width: 100%; max-width: 560px; margin-bottom: 32px;
+  }
+  .mode-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px 16px; cursor: pointer;
+    transition: all .25s; text-align: center;
+  }
+  .mode-card:hover, .mode-card.selected {
+    border-color: var(--accent); background: rgba(0,212,255,0.07);
+    transform: translateY(-3px); box-shadow: var(--glow);
+  }
+  .mode-card .icon { font-size: 28px; margin-bottom: 8px; }
+  .mode-card .label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .mode-card .desc { font-size: 11px; color: var(--muted); }
+
+  .start-btn {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none; border-radius: 14px; padding: 16px 56px;
+    font-size: 18px; font-weight: 800; font-family: 'Tajawal', sans-serif;
+    color: #fff; cursor: pointer; letter-spacing: .5px;
+    transition: all .25s; box-shadow: 0 8px 30px rgba(124,58,237,0.4);
+  }
+  .start-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(124,58,237,0.6); }
+
+  .credit {
+    margin-top: 36px; font-size: 12px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 20px; direction: rtl;
+  }
+
+  /* QUIZ */
+  #quizScreen { max-width: 820px; margin: 0 auto; padding: 24px 16px 40px; }
+  .quiz-header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+  .back-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 16px; cursor: pointer; font-size: 13px;
+    font-family: 'Tajawal', sans-serif; color: var(--muted); transition: all .2s;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--muted); }
+  .progress-wrap { flex: 1; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 10px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 10px; transition: width .4s ease;
+  }
+  .score-badge {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 6px 14px; font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--gold);
+  }
+
+  .q-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px 28px; margin-bottom: 20px;
+    position: relative; overflow: hidden;
+  }
+  .q-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  }
+  .q-number { font-size: 12px; color: var(--muted); margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+  .q-text {
+    font-size: clamp(15px, 2.4vw, 18px); line-height: 1.7; font-weight: 500;
+    direction: ltr; text-align: left;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .opt-btn {
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 16px 20px; cursor: pointer; font-size: 15px;
+    font-family: 'Tajawal', sans-serif; color: var(--text);
+    text-align: left; direction: ltr; transition: all .2s;
+    display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden;
+  }
+  .opt-btn:not(.answered):hover { border-color: var(--accent); background: rgba(0,212,255,0.06); transform: translateX(4px); }
+  .opt-label {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0; transition: all .2s;
+  }
+  .opt-text { flex: 1; line-height: 1.5; }
+  .opt-btn.correct { border-color: var(--green); background: rgba(16,185,129,0.1); animation: correctFlash .4s ease; }
+  .opt-btn.correct .opt-label { background: var(--green); color: #fff; border-color: var(--green); }
+  .opt-btn.wrong { border-color: var(--red); background: rgba(239,68,68,0.1); animation: wrongShake .4s ease; }
+  .opt-btn.wrong .opt-label { background: var(--red); color: #fff; border-color: var(--red); }
+  .opt-btn.show-correct { border-color: var(--green); background: rgba(16,185,129,0.07); }
+  .opt-btn.show-correct .opt-label { background: var(--green); color: #fff; border-color: var(--green); }
+  @keyframes correctFlash { 0% { transform: scale(1); } 40% { transform: scale(1.02); } 100% { transform: scale(1); } }
+  @keyframes wrongShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  .feedback-box {
+    margin-top: 16px; padding: 16px 20px; border-radius: 14px;
+    font-size: 14px; line-height: 1.6; direction: rtl; display: none; animation: fadeUp .3s ease;
+  }
+  .feedback-box.correct { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .feedback-box.wrong   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+
+  .next-btn {
+    width: 100%; margin-top: 20px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none; border-radius: 14px; padding: 14px; font-size: 16px; font-weight: 700;
+    font-family: 'Tajawal', sans-serif; color: #fff; cursor: pointer;
+    display: none; transition: all .25s; box-shadow: 0 6px 24px rgba(124,58,237,0.35);
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(124,58,237,0.5); }
+
+  /* RESULT */
+  #resultScreen { max-width: 700px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+  .result-ring {
+    width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 0 auto 28px; box-shadow: var(--glow), 0 0 60px rgba(0,212,255,0.2);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .result-pct { font-size: 38px; font-weight: 900; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .result-label { font-size: 12px; color: var(--muted); }
+  .result-title { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+  .result-sub { font-size: 14px; color: var(--muted); margin-bottom: 36px; }
+  .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 36px; }
+  .res-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 12px; }
+  .res-cell .val { font-size: 28px; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+  .res-cell .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .review-list { text-align: right; margin-bottom: 28px; }
+  .review-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 10px; font-size: 13px;
+    border-right: 4px solid; direction: ltr; text-align: left;
+  }
+  .review-item.correct-item { border-right-color: var(--green); }
+  .review-item.wrong-item   { border-right-color: var(--red); }
+  .review-item .ri-q { color: var(--text); margin-bottom: 6px; }
+  .review-item .ri-ans { color: var(--muted); font-size: 12px; }
+  .review-item .ri-ans span { color: var(--green); }
+  .review-item .ri-ans .wrong-ans { color: var(--red); }
+
+  .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .outline-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 28px; font-size: 14px; font-family: 'Tajawal', sans-serif;
+    color: var(--text); cursor: pointer; transition: all .2s;
+  }
+  .outline-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .particle { position: fixed; pointer-events: none; border-radius: 50%; animation: floatUp 1.2s ease-out forwards; z-index: 999; }
+  @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-120px) scale(0); opacity: 0; } }
+
+  .streak-badge {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--gold), #ff8c00); color: #000;
+    padding: 8px 24px; border-radius: 50px; font-weight: 900; font-size: 14px;
+    z-index: 500; animation: streakAnim .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes streakAnim { from { transform: translateX(-50%) scale(0) translateY(-20px); } to { transform: translateX(-50%) scale(1) translateY(0); } }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 500px) {
+    .result-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ HOME ══════════════════════════════════════════════════════════════════ -->
+<div id="homeScreen" class="screen active">
+  <div class="logo-ring">Σ</div>
+  <h1 class="home-title">مسابقة العلمية</h1>
+  <p class="home-sub" dir="ltr">Functional Analysis — MCQ Competition</p>
+  <p class="home-sub2">جامعة كركوك — كلية التربية للعلوم الصرفة</p>
+
+  <div class="stats-bar">
+    <div class="stat-chip"><span class="dot" style="background:var(--accent)"></span> عدد الأسئلة: <b>34</b></div>
+    <div class="stat-chip"><span class="dot" style="background:var(--gold)"></span> اختيار متعدد فقط</div>
+  </div>
+
+  <button class="start-btn" onclick="startQuiz()">▶ ابدأ المسابقة</button>
+
+  <div class="credit">إعداد أبو الروض — لا تنسوني من صالح دعواتكم 🤍</div>
+</div>
+
+<!-- ══ QUIZ ═══════════════════════════════════════════════════════════════════ -->
+<div id="quizScreen" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" onclick="goHome()">← رجوع</button>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="qCounter">السؤال 1 / 34</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="score-badge" id="scoreDisplay">0 / 0</div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-number" id="qNum">#1</div>
+    <div class="q-text" id="qText"></div>
+  </div>
+
+  <div id="optionsArea"></div>
+  <div class="feedback-box" id="feedbackBox"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">السؤال التالي ←</button>
+</div>
+
+<!-- ══ RESULT ══════════════════════════════════════════════════════════════════ -->
+<div id="resultScreen" class="screen">
+  <div class="result-ring">
+    <div class="result-pct" id="resultPct">0%</div>
+    <div class="result-label">النتيجة</div>
+  </div>
+  <div class="result-title" id="resultTitle">أحسنت!</div>
+  <div class="result-sub" id="resultSub"></div>
+  <div class="result-grid">
+    <div class="res-cell"><div class="val" id="resCorrect" style="color:var(--green)">0</div><div class="lbl">✓ صحيح</div></div>
+    <div class="res-cell"><div class="val" id="resWrong" style="color:var(--red)">0</div><div class="lbl">✗ خطأ</div></div>
+    <div class="res-cell"><div class="val" id="resTotal" style="color:var(--accent)">0</div><div class="lbl">المجموع</div></div>
+  </div>
+  <h3 style="margin-bottom:14px;font-size:15px;text-align:right">مراجعة الأسئلة:</h3>
+  <div class="review-list" id="reviewList"></div>
+  <div class="btn-row">
+    <button class="start-btn" onclick="restartQuiz()">🔄 إعادة المسابقة</button>
+    <button class="outline-btn" onclick="goHome()">🏠 الرئيسية</button>
+  </div>
+  <div class="credit" style="margin-top:28px">إعداد أبو الروض — لا تنسوني من صالح دعواتكم 🤍</div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   QUESTION BANK — Functional Analysis MCQ Competition
+   Extracted from PowerPoint (bold option = correct answer)
+═══════════════════════════════════════════════════════ */
+const QUESTIONS = [
+{en:"Q1/ Completeness of Hilbert space means:",
+ options:["Every convergent sequence is Cauchy.","Every Cauchy sequence is convergent.","Every sequence has a limit.","Every closed set is compact."],
+ answer:1},
+
+{en:"Q2/ The space B(X,Y) consisting of all bounded linear operators from X to Y is a:",
+ options:["Normed vector space","Finite set","Discrete space","Scalar field"],
+ answer:0},
+
+{en:"Q3/ If two norms ‖·‖₁ and ‖·‖₂ on V are equivalent, then a sequence (xₙ) converges in one norm if and only if:",
+ options:["It diverges in the other","It is bounded in the other","It is Cauchy in the other","It converges in the other"],
+ answer:3},
+
+{en:"Q4/ The norm of a vector v in an inner product space is defined as:",
+ options:["‖v‖ = ⟨v,v⟩","‖v‖ = √⟨v,v⟩","‖v‖ = ⟨v,v⟩²","‖v‖ = |⟨v,v⟩|"],
+ answer:1},
+
+{en:"Q5/ Which of the following statements is true regarding a finite-dimensional normed space?",
+ options:["It is always a Banach space (complete).","It is not necessarily complete.","Its norm is not equivalent to the Euclidean norm.","It cannot be a Hilbert space."],
+ answer:0},
+
+{en:"Q6/ Which of the following is equivalent to saying a linear transformation T: X → Y is continuous?",
+ options:["T is surjective.","T is continuous at 0.","T is any isometry.","T is defined on a finite-dimensional space."],
+ answer:1},
+
+{en:"Q7/ What does the Cauchy-Schwarz Inequality state for vectors u, v in an inner product space?",
+ options:["|⟨u,v⟩| ≤ ‖u‖‖v‖","|⟨u,v⟩| ≥ ‖u‖‖v‖","⟨u,v⟩ = ‖u‖‖v‖","⟨u,v⟩ = 0"],
+ answer:0},
+
+{en:"Q8/ Which of the following is an example of a non-complete normed space?",
+ options:["The space C[a,b] with maximum norm ‖f‖∞","The space Rⁿ with the Euclidean norm","The space of all polynomials on [0,1] with the maximum norm","The sequence space ℓᵖ for 1 ≤ p < ∞"],
+ answer:2},
+
+{en:"Q9/ The span of a set of vectors is:",
+ options:["The set of all linear combinations of those vectors.","The set containing only those vectors.","Always equal to the whole vector space.","Only defined for orthogonal vectors."],
+ answer:0},
+
+{en:"Q10/ A bounded linear operator T on Hilbert space H is called self-adjoint if:",
+ options:["T = T²","TT* = T*T = I","T = T*","TT* = 0"],
+ answer:2},
+
+{en:"Q11/ In a metric space, a set is closed if and only if:",
+ options:["It is equal to its closure.","Every point in A has an open ball around it contained in A.","It contains all its limit points.","It is finite."],
+ answer:2},
+
+{en:"Q12/ If X is a finite-dimensional normed space, then any linear transformation T: X → Y is:",
+ options:["Continuous only if T is surjective","Continuous only if Y is also finite-dimensional","Never continuous","Always continuous"],
+ answer:3},
+
+{en:"Q13/ If T ∈ B(X,Y) and S ∈ B(Y,Z), then which inequality holds for the operator norm of the composition?",
+ options:["‖ST‖ ≤ ‖S‖‖T‖","‖S‖‖T‖ ≤ ‖ST‖","‖ST‖ ≤ ‖S‖ + ‖T‖","‖ST‖ = ‖S‖ + ‖T‖"],
+ answer:0},
+
+{en:"Q14/ Which of the following statements is true?",
+ options:["Every infinite-dimensional normed vector space is separable.","Every infinite-dimensional Hilbert space is separable.","Every finite-dimensional Hilbert space is not separable.","Every finite-dimensional normed vector space is separable."],
+ answer:3},
+
+{en:"Q15/ Let xₙ → x and yₙ → y in an inner product space. Which of the following limits is correct?",
+ options:["lim (xₙ - x, yₙ) = y","lim (xₙ, yₙ - y) = x","lim (xₙ - x, yₙ - y) = 0","lim (xₙ, yₙ) = n"],
+ answer:2},
+
+{en:"Q16/ A norm satisfies the parallelogram law if and only if:",
+ options:["It is induced by an inner product.","The space is finite dimensional.","All norms satisfy it.","The vectors are orthogonal."],
+ answer:0},
+
+{en:"Q17/ In a finite-dimensional vector space:",
+ options:["Only the Euclidean norm is complete","Not all norms are equivalent.","All norms are equivalent.","No norm can be defined if the dimension is greater than 3"],
+ answer:2},
+
+{en:"Q18/ For any scalar λ and bounded linear operator T, which property holds true regarding the norm?",
+ options:["‖λT‖ = λ‖T‖","‖λT‖ = |λ| + ‖T‖","‖λT‖ = λ²‖T‖","‖λT‖ = |λ|‖T‖"],
+ answer:3},
+
+{en:"Q19/ The dual space X' of a normed space X is defined as:",
+ options:["The set of all linear operators from X to R","The set of all bounded linear operators from X to X","The set of all bounded linear functionals (operators to the scalar field K) on X","The set of all continuous functions on X"],
+ answer:2},
+
+{en:"Q20/ If T: X → Y is a continuous linear operator and Y is a Banach space (complete), then:",
+ options:["X must be a Banach space","T(X) must be closed","T is bounded","T is not necessarily bounded"],
+ answer:2},
+
+{en:"Q21/ If V is a real inner product space and ⟨u,v⟩ = 0, what can be concluded?",
+ options:["u = v","u is orthogonal to v","u is a scalar multiple of v","u = -v"],
+ answer:1},
+
+{en:"Q22/ In a complex inner product space, the inner product satisfies:",
+ options:["⟨u,v⟩ = ⟨v,u⟩","⟨u,v⟩ = -⟨v,u⟩","⟨u,v⟩ = conj⟨v,u⟩","⟨u,v⟩ = 0"],
+ answer:2},
+
+{en:"Q23/ What is the necessary and sufficient condition for the space B(X,Y) to be a Banach space?",
+ options:["X must be a Banach space","Both X and Y must be Banach spaces","Y must be a Banach space","Neither X nor Y needs to be complete"],
+ answer:2},
+
+{en:"Q24/ If T₁ and T₂ are invertible elements of B(X), then the inverse of (T₁T₂) is given by:",
+ options:["T₁⁻¹T₂⁻¹","T₂⁻¹T₁⁻¹","T₂T₁","(T₂T₁)⁻¹"],
+ answer:1},
+
+{en:"Q25/ If X is a normed vector space, then:",
+ options:["X' is a Banach space","X' is not a Banach space.","X' is not normed.","X' is a vector."],
+ answer:0},
+
+{en:"Q26/ A linear operator T: X → Y is bounded if and only if:",
+ options:["There exists M > 0 such that ‖Tx‖ ≤ M for all x ∈ X","There exists M > 0 such that ‖Tx‖ ≤ M‖x‖ for all x ∈ X","T(X) is a closed set","T is continuous only at x = 0"],
+ answer:1},
+
+{en:"Q27/ If a set of vectors is linearly dependent, then:",
+ options:["One vector can be written as a linear combination of the others.","None of the vectors can be written as a linear combination of the others.","The set is empty.","The set must contain the zero vector."],
+ answer:0},
+
+{en:"Q28/ If X is a Banach space and T ∈ B(X) is one-to-one and maps X onto X, then:",
+ options:["T is not bounded.","T is not invertible.","T is closed.","T is invertible."],
+ answer:3},
+
+{en:"Q29/ In any normed space, the norm function ‖·‖: X → R is:",
+ options:["Linear","Constant","Continuous","Discontinuous"],
+ answer:2},
+
+{en:"Q30/ If a linear operator T is bounded, then T is:",
+ options:["Continuous","Open","Compact","A matrix"],
+ answer:0},
+
+{en:"Q31/ For any operator T, what is the result of TT⁻¹?",
+ options:["The zero operator","The original operator","The identity operator","The inverse operator"],
+ answer:2},
+
+{en:"Q32/ For vectors x, y, z ∈ X and scalars α, β ∈ 𝔽, which of the following equalities is true?",
+ options:["(x, αy+βz) = α(x,y) + β(x,z)","(x, αy+βz) = ᾱ(x,y) + β̄(x,z)","(αx+βy, z) = ᾱ(x,z) + β̄(y,z)","(x, αy+βz) = α(y,x) + β(z,x)"],
+ answer:1},
+
+{en:"Q33/ In R², which of the following defines a valid norm?",
+ options:["‖x‖ = x₁ + x₂","‖x‖ = |x₁| + |x₂|","‖x‖ = x₁² + x₂²","‖x‖ = max(x₁, x₂)"],
+ answer:1},
+
+{en:"Q34/ The composition of linear transformations satisfies the associative property. This means R∘(S∘T) is:",
+ options:["(R∘S)∘T","(S∘R)∘T","T∘(S∘R)","(S∘T)∘R"],
+ answer:0},
+];
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let quizQuestions = [];
+let currentIdx = 0;
+let score = 0;
+let answered = false;
+let userAnswers = [];
+let streak = 0;
+let streakTimer = null;
+
+function startQuiz() {
+  quizQuestions = shuffle([...QUESTIONS]);
+  currentIdx = 0; score = 0; answered = false; userAnswers = []; streak = 0;
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = quizQuestions[currentIdx];
+  const total = quizQuestions.length;
+  answered = false;
+
+  document.getElementById('qCounter').textContent = `السؤال ${currentIdx+1} / ${total}`;
+  document.getElementById('progressFill').style.width = `${((currentIdx)/total)*100}%`;
+  document.getElementById('scoreDisplay').textContent = `${score} / ${currentIdx}`;
+  document.getElementById('qNum').textContent = `#${currentIdx+1}`;
+
+  const qText = document.getElementById('qText');
+  qText.textContent = q.en;
+
+  const area = document.getElementById('optionsArea');
+  area.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'options';
+  const labels = ['A','B','C','D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-label">${labels[i]}</span><span class="opt-text">${opt}</span>`;
+    btn.onclick = () => handleMCQ(btn, i, q, div);
+    div.appendChild(btn);
+  });
+  area.appendChild(div);
+
+  const fb = document.getElementById('feedbackBox');
+  fb.style.display = 'none';
+  fb.className = 'feedback-box';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function handleMCQ(clickedBtn, idx, q, container) {
+  if (answered) return;
+  answered = true;
+  const isCorrect = idx === q.answer;
+  const allBtns = container.querySelectorAll('.opt-btn');
+  allBtns.forEach(b => b.classList.add('answered'));
+
+  if (isCorrect) {
+    clickedBtn.classList.add('correct');
+    score++;
+    streak++;
+    spawnParticles(clickedBtn, '#10b981');
+    if (streak >= 3) showStreak(streak);
+  } else {
+    clickedBtn.classList.add('wrong');
+    streak = 0;
+    allBtns[q.answer].classList.add('show-correct');
+  }
+
+  userAnswers.push({q, userAns: q.options[idx], correct: isCorrect});
+  showFeedback(isCorrect, q);
+}
+
+function showFeedback(isCorrect, q) {
+  const fb = document.getElementById('feedbackBox');
+  fb.style.display = 'block';
+  if (isCorrect) {
+    fb.className = 'feedback-box correct';
+    fb.textContent = '✓ إجابة صحيحة!';
+  } else {
+    fb.className = 'feedback-box wrong';
+    fb.textContent = '✗ إجابة خاطئة. الصحيح: ' + q.options[q.answer];
+  }
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= quizQuestions.length) showResult();
+  else renderQuestion();
+}
+
+function showResult() {
+  document.getElementById('progressFill').style.width = '100%';
+  const total = quizQuestions.length;
+  const pct = Math.round((score/total)*100);
+
+  document.getElementById('resultPct').textContent = pct + '%';
+  document.getElementById('resCorrect').textContent = score;
+  document.getElementById('resWrong').textContent = total - score;
+  document.getElementById('resTotal').textContent = total;
+
+  const titles = [
+    [90, ', 🏆 ممتاز! أداء رائع, مهكر المادة'],
+    [75, '🌟 جيد جداً! ,بس بعد ينرادلك'],
+    [60, '👍 جيد! راجع الأخطاء'],
+    [0,  ' كلاوجي روح اقرة كلشي ما قاري '],
+  ];
+  const sub = [
+    [90, 'نتيجة متميزة، أنت بطل نام وانت مرتاح   '],
+    [75, 'أداء جيد عاشت ايدك ، راجع الأسئلة الخاطئة'],
+    [60, ' تحتاج تقرة بعد'],
+    [0,  'شد حيل واقرة زين '],
+  ];
+  document.getElementById('resultTitle').textContent = titles.find(([t])=>pct>=t)[1];
+  document.getElementById('resultSub').textContent = sub.find(([t])=>pct>=t)[1];
+
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  userAnswers.forEach((ua, i) => {
+    const div = document.createElement('div');
+    div.className = `review-item ${ua.correct?'correct-item':'wrong-item'}`;
+    const qShort = ua.q.en.length > 90 ? ua.q.en.slice(0,90)+'…' : ua.q.en;
+    if (ua.correct) {
+      div.innerHTML = `<div class="ri-q">${i+1}. ${qShort}</div>
+        <div class="ri-ans">إجابتك: <span>${ua.userAns}</span> ✓</div>`;
+    } else {
+      div.innerHTML = `<div class="ri-q">${i+1}. ${qShort}</div>
+        <div class="ri-ans">إجابتك: <span class="wrong-ans">${ua.userAns}</span> — الصحيح: <span>${ua.q.options[ua.q.answer]}</span></div>`;
+    }
+    list.appendChild(div);
+  });
+
+  showScreen('resultScreen');
+}
+
+function restartQuiz() { startQuiz(); }
+function goHome() { showScreen('homeScreen'); }
+
+function spawnParticles(el, color) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 6 + Math.random()*6;
+    p.style.cssText = `width:${size}px;height:${size}px;background:${color};
+      left:${cx + (Math.random()-0.5)*80}px;top:${cy}px;
+      animation-delay:${Math.random()*0.2}s;`;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1400);
+  }
+}
+
+function showStreak(n) {
+  if (streakTimer) clearTimeout(streakTimer);
+  const old = document.querySelector('.streak-badge');
+  if (old) old.remove();
+  const badge = document.createElement('div');
+  badge.className = 'streak-badge';
+  badge.textContent = `🔥 ${n} إجابات متتالية!`;
+  document.body.appendChild(badge);
+  streakTimer = setTimeout(() => badge.remove(), 2000);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+</script>
+</body>
+</html>
