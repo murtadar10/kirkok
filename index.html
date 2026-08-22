@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Functional Analysis</title>
+<title> Functional Analysis</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -180,6 +180,21 @@
   @keyframes correctFlash { 0% { transform: scale(1); } 40% { transform: scale(1.02); } 100% { transform: scale(1); } }
   @keyframes wrongShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
+  .tf-options { display: flex; gap: 16px; }
+  .tf-btn {
+    flex: 1; background: var(--surface2); border: 2px solid var(--border); border-radius: 16px;
+    padding: 24px; cursor: pointer; font-size: 18px; font-weight: 800;
+    font-family: 'Tajawal', sans-serif; color: var(--text); transition: all .25s; text-align: center;
+  }
+  .tf-btn:not(.answered):hover { transform: scale(1.03); }
+  .tf-btn.tf-true:not(.answered):hover { border-color: var(--green); background: rgba(16,185,129,0.1); }
+  .tf-btn.tf-false:not(.answered):hover { border-color: var(--red); background: rgba(239,68,68,0.1); }
+  .tf-btn.correct { border-color: var(--green); background: rgba(16,185,129,0.15); animation: correctFlash .4s ease; }
+  .tf-btn.wrong { border-color: var(--red); background: rgba(239,68,68,0.15); animation: wrongShake .4s ease; }
+  .tf-btn.show-correct { border-color: var(--green); background: rgba(16,185,129,0.1); }
+  .tf-icon { font-size: 28px; margin-bottom: 6px; }
+  @media (max-width: 500px) { .tf-options { flex-direction: column; } }
+
   .feedback-box {
     margin-top: 16px; padding: 16px 20px; border-radius: 14px;
     font-size: 14px; line-height: 1.6; direction: rtl; display: none; animation: fadeUp .3s ease;
@@ -260,13 +275,35 @@
 <!-- ══ HOME ══════════════════════════════════════════════════════════════════ -->
 <div id="homeScreen" class="screen active">
   <div class="logo-ring">Σ</div>
-  <h1 class="home-title">اختبار التحليل الدالي </h1>
+  <h1 class="home-title">اختبار التحليل الدالي</h1>
   <p class="home-sub" dir="ltr">Functional Analysis — MCQ Competition</p>
-  <p class="home-sub2">جامعة كركوك — كلية التربية للعلوم الصرفة — قسم الرياضيات</p>
+  <p class="home-sub2">جامعة كركوك — كلية التربية للعلوم الصرفة</p>
+
   <div class="stats-bar">
-    <div class="stat-chip"><span class="dot" style="background:var(--accent)"></span> عدد الأسئلة: <b>34</b></div>
-    <div class="stat-chip"><span class="dot" style="background:var(--gold)"></span> اختيار متعدد فقط</div>
+    <div class="stat-chip"><span class="dot" style="background:var(--accent)"></span> اختيار متعدد: <b>40</b></div>
+    <div class="stat-chip"><span class="dot" style="background:#a78bfa"></span> صح وخطأ: <b>10</b></div>
+    <div class="stat-chip"><span class="dot" style="background:var(--gold)"></span> المجموع: <b>50</b></div>
   </div>
+
+  <p style="font-size:13px;color:var(--muted);margin-bottom:14px;align-self:flex-start;max-width:560px">اختر نوع الأسئلة:</p>
+  <div class="mode-grid">
+    <div class="mode-card selected" data-mode="all" onclick="selectMode(this,'all')">
+      <div class="icon">🎯</div>
+      <div class="label">الكل</div>
+      <div class="desc">جميع الأسئلة</div>
+    </div>
+    <div class="mode-card" data-mode="mcq" onclick="selectMode(this,'mcq')">
+      <div class="icon">🔘</div>
+      <div class="label">اختيار متعدد</div>
+      <div class="desc">Multiple Choice</div>
+    </div>
+    <div class="mode-card" data-mode="tf" onclick="selectMode(this,'tf')">
+      <div class="icon">✅</div>
+      <div class="label">صح وخطأ</div>
+      <div class="desc">True / False</div>
+    </div>
+  </div>
+
 
   <button class="start-btn" onclick="startQuiz()">▶ ابدأ الاختبار</button>
 
@@ -324,148 +361,198 @@
 /* ═══════════════════════════════════════════════════════
    QUESTION BANK — Functional Analysis MCQ Competition
    Extracted from PowerPoint (bold option = correct answer)
-═══════════════════════════════════════════════════════ */
+  ═════════════════════════════════════════════════════ */
 const QUESTIONS = [
-{en:"Q1/ Completeness of Hilbert space means:",
+{type:'mcq', en:"Q1/ Completeness of Hilbert space means:",
  options:["Every convergent sequence is Cauchy.","Every Cauchy sequence is convergent.","Every sequence has a limit.","Every closed set is compact."],
  answer:1},
 
-{en:"Q2/ The space B(X,Y) consisting of all bounded linear operators from X to Y is a:",
+{type:'mcq', en:"Q2/ The space B(X,Y) consisting of all bounded linear operators from X to Y is a:",
  options:["Normed vector space","Finite set","Discrete space","Scalar field"],
  answer:0},
 
-{en:"Q3/ If two norms ‖·‖₁ and ‖·‖₂ on V are equivalent, then a sequence (xₙ) converges in one norm if and only if:",
+{type:'mcq', en:"Q3/ If two norms ‖·‖₁ and ‖·‖₂ on V are equivalent, then a sequence (xₙ) converges in one norm if and only if:",
  options:["It diverges in the other","It is bounded in the other","It is Cauchy in the other","It converges in the other"],
  answer:3},
 
-{en:"Q4/ The norm of a vector v in an inner product space is defined as:",
+{type:'mcq', en:"Q4/ The norm of a vector v in an inner product space is defined as:",
  options:["‖v‖ = ⟨v,v⟩","‖v‖ = √⟨v,v⟩","‖v‖ = ⟨v,v⟩²","‖v‖ = |⟨v,v⟩|"],
  answer:1},
 
-{en:"Q5/ Which of the following statements is true regarding a finite-dimensional normed space?",
+{type:'mcq', en:"Q5/ Which of the following statements is true regarding a finite-dimensional normed space?",
  options:["It is always a Banach space (complete).","It is not necessarily complete.","Its norm is not equivalent to the Euclidean norm.","It cannot be a Hilbert space."],
  answer:0},
 
-{en:"Q6/ Which of the following is equivalent to saying a linear transformation T: X → Y is continuous?",
+{type:'mcq', en:"Q6/ Which of the following is equivalent to saying a linear transformation T: X → Y is continuous?",
  options:["T is surjective.","T is continuous at 0.","T is any isometry.","T is defined on a finite-dimensional space."],
  answer:1},
 
-{en:"Q7/ What does the Cauchy-Schwarz Inequality state for vectors u, v in an inner product space?",
+{type:'mcq', en:"Q7/ What does the Cauchy-Schwarz Inequality state for vectors u, v in an inner product space?",
  options:["|⟨u,v⟩| ≤ ‖u‖‖v‖","|⟨u,v⟩| ≥ ‖u‖‖v‖","⟨u,v⟩ = ‖u‖‖v‖","⟨u,v⟩ = 0"],
  answer:0},
 
-{en:"Q8/ Which of the following is an example of a non-complete normed space?",
+{type:'mcq', en:"Q8/ Which of the following is an example of a non-complete normed space?",
  options:["The space C[a,b] with maximum norm ‖f‖∞","The space Rⁿ with the Euclidean norm","The space of all polynomials on [0,1] with the maximum norm","The sequence space ℓᵖ for 1 ≤ p < ∞"],
  answer:2},
 
-{en:"Q9/ The span of a set of vectors is:",
+{type:'mcq', en:"Q9/ The span of a set of vectors is:",
  options:["The set of all linear combinations of those vectors.","The set containing only those vectors.","Always equal to the whole vector space.","Only defined for orthogonal vectors."],
  answer:0},
 
-{en:"Q10/ A bounded linear operator T on Hilbert space H is called self-adjoint if:",
+{type:'mcq', en:"Q10/ A bounded linear operator T on Hilbert space H is called self-adjoint if:",
  options:["T = T²","TT* = T*T = I","T = T*","TT* = 0"],
  answer:2},
 
-{en:"Q11/ In a metric space, a set is closed if and only if:",
+{type:'mcq', en:"Q11/ In a metric space, a set is closed if and only if:",
  options:["It is equal to its closure.","Every point in A has an open ball around it contained in A.","It contains all its limit points.","It is finite."],
  answer:2},
 
-{en:"Q12/ If X is a finite-dimensional normed space, then any linear transformation T: X → Y is:",
+{type:'mcq', en:"Q12/ If X is a finite-dimensional normed space, then any linear transformation T: X → Y is:",
  options:["Continuous only if T is surjective","Continuous only if Y is also finite-dimensional","Never continuous","Always continuous"],
  answer:3},
 
-{en:"Q13/ If T ∈ B(X,Y) and S ∈ B(Y,Z), then which inequality holds for the operator norm of the composition?",
+{type:'mcq', en:"Q13/ If T ∈ B(X,Y) and S ∈ B(Y,Z), then which inequality holds for the operator norm of the composition?",
  options:["‖ST‖ ≤ ‖S‖‖T‖","‖S‖‖T‖ ≤ ‖ST‖","‖ST‖ ≤ ‖S‖ + ‖T‖","‖ST‖ = ‖S‖ + ‖T‖"],
  answer:0},
 
-{en:"Q14/ Which of the following statements is true?",
+{type:'mcq', en:"Q14/ Which of the following statements is true?",
  options:["Every infinite-dimensional normed vector space is separable.","Every infinite-dimensional Hilbert space is separable.","Every finite-dimensional Hilbert space is not separable.","Every finite-dimensional normed vector space is separable."],
  answer:3},
 
-{en:"Q15/ Let xₙ → x and yₙ → y in an inner product space. Which of the following limits is correct?",
+{type:'mcq', en:"Q15/ Let xₙ → x and yₙ → y in an inner product space. Which of the following limits is correct?",
  options:["lim (xₙ - x, yₙ) = y","lim (xₙ, yₙ - y) = x","lim (xₙ - x, yₙ - y) = 0","lim (xₙ, yₙ) = n"],
  answer:2},
 
-{en:"Q16/ A norm satisfies the parallelogram law if and only if:",
+{type:'mcq', en:"Q16/ A norm satisfies the parallelogram law if and only if:",
  options:["It is induced by an inner product.","The space is finite dimensional.","All norms satisfy it.","The vectors are orthogonal."],
  answer:0},
 
-{en:"Q17/ In a finite-dimensional vector space:",
+{type:'mcq', en:"Q17/ In a finite-dimensional vector space:",
  options:["Only the Euclidean norm is complete","Not all norms are equivalent.","All norms are equivalent.","No norm can be defined if the dimension is greater than 3"],
  answer:2},
 
-{en:"Q18/ For any scalar λ and bounded linear operator T, which property holds true regarding the norm?",
+{type:'mcq', en:"Q18/ For any scalar λ and bounded linear operator T, which property holds true regarding the norm?",
  options:["‖λT‖ = λ‖T‖","‖λT‖ = |λ| + ‖T‖","‖λT‖ = λ²‖T‖","‖λT‖ = |λ|‖T‖"],
  answer:3},
 
-{en:"Q19/ The dual space X' of a normed space X is defined as:",
+{type:'mcq', en:"Q19/ The dual space X' of a normed space X is defined as:",
  options:["The set of all linear operators from X to R","The set of all bounded linear operators from X to X","The set of all bounded linear functionals (operators to the scalar field K) on X","The set of all continuous functions on X"],
  answer:2},
 
-{en:"Q20/ If T: X → Y is a continuous linear operator and Y is a Banach space (complete), then:",
+{type:'mcq', en:"Q20/ If T: X → Y is a continuous linear operator and Y is a Banach space (complete), then:",
  options:["X must be a Banach space","T(X) must be closed","T is bounded","T is not necessarily bounded"],
  answer:2},
 
-{en:"Q21/ If V is a real inner product space and ⟨u,v⟩ = 0, what can be concluded?",
+{type:'mcq', en:"Q21/ If V is a real inner product space and ⟨u,v⟩ = 0, what can be concluded?",
  options:["u = v","u is orthogonal to v","u is a scalar multiple of v","u = -v"],
  answer:1},
 
-{en:"Q22/ In a complex inner product space, the inner product satisfies:",
+{type:'mcq', en:"Q22/ In a complex inner product space, the inner product satisfies:",
  options:["⟨u,v⟩ = ⟨v,u⟩","⟨u,v⟩ = -⟨v,u⟩","⟨u,v⟩ = conj⟨v,u⟩","⟨u,v⟩ = 0"],
  answer:2},
 
-{en:"Q23/ What is the necessary and sufficient condition for the space B(X,Y) to be a Banach space?",
+{type:'mcq', en:"Q23/ What is the necessary and sufficient condition for the space B(X,Y) to be a Banach space?",
  options:["X must be a Banach space","Both X and Y must be Banach spaces","Y must be a Banach space","Neither X nor Y needs to be complete"],
  answer:2},
 
-{en:"Q24/ If T₁ and T₂ are invertible elements of B(X), then the inverse of (T₁T₂) is given by:",
+{type:'mcq', en:"Q24/ If T₁ and T₂ are invertible elements of B(X), then the inverse of (T₁T₂) is given by:",
  options:["T₁⁻¹T₂⁻¹","T₂⁻¹T₁⁻¹","T₂T₁","(T₂T₁)⁻¹"],
  answer:1},
 
-{en:"Q25/ If X is a normed vector space, then:",
+{type:'mcq', en:"Q25/ If X is a normed vector space, then:",
  options:["X' is a Banach space","X' is not a Banach space.","X' is not normed.","X' is a vector."],
  answer:0},
 
-{en:"Q26/ A linear operator T: X → Y is bounded if and only if:",
+{type:'mcq', en:"Q26/ A linear operator T: X → Y is bounded if and only if:",
  options:["There exists M > 0 such that ‖Tx‖ ≤ M for all x ∈ X","There exists M > 0 such that ‖Tx‖ ≤ M‖x‖ for all x ∈ X","T(X) is a closed set","T is continuous only at x = 0"],
  answer:1},
 
-{en:"Q27/ If a set of vectors is linearly dependent, then:",
+{type:'mcq', en:"Q27/ If a set of vectors is linearly dependent, then:",
  options:["One vector can be written as a linear combination of the others.","None of the vectors can be written as a linear combination of the others.","The set is empty.","The set must contain the zero vector."],
  answer:0},
 
-{en:"Q28/ If X is a Banach space and T ∈ B(X) is one-to-one and maps X onto X, then:",
+{type:'mcq', en:"Q28/ If X is a Banach space and T ∈ B(X) is one-to-one and maps X onto X, then:",
  options:["T is not bounded.","T is not invertible.","T is closed.","T is invertible."],
  answer:3},
 
-{en:"Q29/ In any normed space, the norm function ‖·‖: X → R is:",
+{type:'mcq', en:"Q29/ In any normed space, the norm function ‖·‖: X → R is:",
  options:["Linear","Constant","Continuous","Discontinuous"],
  answer:2},
 
-{en:"Q30/ If a linear operator T is bounded, then T is:",
+{type:'mcq', en:"Q30/ If a linear operator T is bounded, then T is:",
  options:["Continuous","Open","Compact","A matrix"],
  answer:0},
 
-{en:"Q31/ For any operator T, what is the result of TT⁻¹?",
+{type:'mcq', en:"Q31/ For any operator T, what is the result of TT⁻¹?",
  options:["The zero operator","The original operator","The identity operator","The inverse operator"],
  answer:2},
 
-{en:"Q32/ For vectors x, y, z ∈ X and scalars α, β ∈ 𝔽, which of the following equalities is true?",
+{type:'mcq', en:"Q32/ For vectors x, y, z ∈ X and scalars α, β ∈ 𝔽, which of the following equalities is true?",
  options:["(x, αy+βz) = α(x,y) + β(x,z)","(x, αy+βz) = ᾱ(x,y) + β̄(x,z)","(αx+βy, z) = ᾱ(x,z) + β̄(y,z)","(x, αy+βz) = α(y,x) + β(z,x)"],
  answer:1},
 
-{en:"Q33/ In R², which of the following defines a valid norm?",
+{type:'mcq', en:"Q33/ In R², which of the following defines a valid norm?",
  options:["‖x‖ = x₁ + x₂","‖x‖ = |x₁| + |x₂|","‖x‖ = x₁² + x₂²","‖x‖ = max(x₁, x₂)"],
  answer:1},
 
-{en:"Q34/ The composition of linear transformations satisfies the associative property. This means R∘(S∘T) is:",
+{type:'mcq', en:"Q34/ The composition of linear transformations satisfies the associative property. This means R∘(S∘T) is:",
  options:["(R∘S)∘T","(S∘R)∘T","T∘(S∘R)","(S∘T)∘R"],
  answer:0},
+
+/* ── NEW MCQ — From exam papers (month 2 & 3, morning & evening) ────── */
+{type:'mcq', en:"For any linear transformation T ∈ L(V,W), the image of the zero vector T(0) is always:",
+ options:["1","V","0","undefined"],
+ answer:2},
+
+{type:'mcq', en:"Let C[0,1] with standard norm ‖f‖ = sup|f(x)|. For f(x)=1 and g(x)=x, which equality holds?",
+ options:["‖f+g‖ + ‖f-g‖ = 4","(‖f‖+‖g‖) = 3","‖f+g‖ + ‖f-g‖ = 2(‖f‖+‖g‖)","‖f+g‖ + ‖f-g‖ ≠ 2(‖f‖+‖g‖)"],
+ answer:3},
+
+{type:'mcq', en:"For any inner product space X and vectors x,y ∈ X, which of the following is always true?",
+ options:["(0, y) = 0","(x, 0) = x","(0, y) = (x, y)","(x, 0) = (0, y)"],
+ answer:0},
+
+{type:'mcq', en:"If ‖T‖ = 0 for a bounded linear operator, this implies that:",
+ options:["T is an identity transformation.","T is the zero linear transformation.","T is a scalar transformation.","T is discrete."],
+ answer:1},
+
+{type:'mcq', en:"Let X be an inner product space and A, B ⊂ X. Which statement is true?",
+ options:["X⊥ = X","If B ⊂ A, then A⊥ ⊂ B⊥","A⊥ = {0} for every A","If 0 ∈ A, then A ∩ A⊥ = ∅"],
+ answer:1},
+
+{type:'mcq', en:"Let {eₙ} be an orthonormal sequence in an inner product space X. For any x ∈ X, which is Bessel's inequality?",
+ options:["Σ|αₙ| < ∞","Σ|⟨x,eₙ⟩|² converges","Σ|⟨x,eₙ⟩|² ≤ ‖x‖²","‖Σαₙeₙ‖ = Σ|αₙ|²"],
+ answer:2},
+
+/* ── TRUE / FALSE — From exam papers (statement verification sections) ── */
+{type:'tf', en:"Any finite-dimensional inner product space X contains an orthonormal sequence.",
+ answer:true, correction:""},
+{type:'tf', en:"An infinite-dimensional Hilbert space H is separable if and only if it has a countable orthonormal basis.",
+ answer:true, correction:""},
+{type:'tf', en:"Every Hilbert space is an inner product space.",
+ answer:true, correction:""},
+{type:'tf', en:"If X is a complete inner product space and Y ⊂ X is a linear subspace, then Y is complete if and only if Y is closed in X.",
+ answer:true, correction:""},
+{type:'tf', en:"Every infinite-dimensional inner product space is a Hilbert space.",
+ answer:false,
+ correction:"False — a Hilbert space must also be complete. Not every infinite-dimensional inner product space is complete (e.g., the space of polynomials with the L² inner product is not complete)."},
+{type:'tf', en:"If X and Y are normed linear spaces, then L(X,Y) ⊆ B(X,Y).",
+ answer:false,
+ correction:"False — the correct inclusion is the reverse: B(X,Y) ⊆ L(X,Y). Not every linear transformation is bounded (only true automatically in finite dimensions)."},
+{type:'tf', en:"If X and Y are normed linear spaces and T: X → Y is a continuous linear transformation, then G(T) (the graph of T) is closed.",
+ answer:true, correction:""},
+{type:'tf', en:"Let X and Y be normed linear spaces and T ∈ L(X,Y). If ‖T(x)‖ = ‖x‖ for all x, then T is bounded.",
+ answer:true, correction:""},
+{type:'tf', en:"If X is a Banach space and T ∈ B(X) is one-to-one and maps X onto X, then T is invertible.",
+ answer:true, correction:""},
+{type:'tf', en:"B(X,Y), the space of all bounded linear operators from X to Y, is a normed vector space.",
+ answer:true, correction:""},
 ];
 
 /* ═══════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════ */
+let selectedMode = 'all';
 let quizQuestions = [];
 let currentIdx = 0;
 let score = 0;
@@ -474,8 +561,16 @@ let userAnswers = [];
 let streak = 0;
 let streakTimer = null;
 
+function selectMode(el, mode) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMode = mode;
+}
+
 function startQuiz() {
-  quizQuestions = shuffle([...QUESTIONS]);
+  let pool = [...QUESTIONS];
+  if (selectedMode !== 'all') pool = pool.filter(q => q.type === selectedMode);
+  quizQuestions = shuffle(pool);
   currentIdx = 0; score = 0; answered = false; userAnswers = []; streak = 0;
   showScreen('quizScreen');
   renderQuestion();
@@ -496,22 +591,62 @@ function renderQuestion() {
 
   const area = document.getElementById('optionsArea');
   area.innerHTML = '';
-  const div = document.createElement('div');
-  div.className = 'options';
-  const labels = ['A','B','C','D'];
-  q.options.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'opt-btn';
-    btn.innerHTML = `<span class="opt-label">${labels[i]}</span><span class="opt-text">${opt}</span>`;
-    btn.onclick = () => handleMCQ(btn, i, q, div);
-    div.appendChild(btn);
-  });
-  area.appendChild(div);
+
+  if (q.type === 'tf') {
+    const div = document.createElement('div');
+    div.className = 'tf-options';
+    ['True','False'].forEach((label, i) => {
+      const btn = document.createElement('button');
+      btn.className = `tf-btn ${i===0?'tf-true':'tf-false'}`;
+      btn.innerHTML = `<div class="tf-icon">${i===0?'✓':'✗'}</div>${label}`;
+      btn.onclick = () => handleTF(btn, i===0, q);
+      div.appendChild(btn);
+    });
+    area.appendChild(div);
+  } else {
+    const div = document.createElement('div');
+    div.className = 'options';
+    const labels = ['A','B','C','D'];
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.innerHTML = `<span class="opt-label">${labels[i]}</span><span class="opt-text">${opt}</span>`;
+      btn.onclick = () => handleMCQ(btn, i, q, div);
+      div.appendChild(btn);
+    });
+    area.appendChild(div);
+  }
 
   const fb = document.getElementById('feedbackBox');
   fb.style.display = 'none';
   fb.className = 'feedback-box';
   document.getElementById('nextBtn').style.display = 'none';
+}
+
+function handleTF(clickedBtn, userAnswer, q) {
+  if (answered) return;
+  answered = true;
+  const isCorrect = (userAnswer === q.answer);
+  const allBtns = document.querySelectorAll('.tf-btn');
+  allBtns.forEach(b => b.classList.add('answered'));
+
+  if (isCorrect) {
+    clickedBtn.classList.add('correct');
+    score++;
+    streak++;
+    spawnParticles(clickedBtn, '#10b981');
+    if (streak >= 3) showStreak(streak);
+  } else {
+    clickedBtn.classList.add('wrong');
+    streak = 0;
+    allBtns.forEach((b,i) => {
+      if ((i===0 && q.answer===true)||(i===1 && q.answer===false))
+        b.classList.add('show-correct');
+    });
+  }
+
+  userAnswers.push({q, userAns: userAnswer ? 'True' : 'False', correct: isCorrect});
+  showFeedback(isCorrect, q);
 }
 
 function handleMCQ(clickedBtn, idx, q, container) {
@@ -545,7 +680,11 @@ function showFeedback(isCorrect, q) {
     fb.textContent = '✓ إجابة صحيحة!';
   } else {
     fb.className = 'feedback-box wrong';
-    fb.textContent = '✗ إجابة خاطئة. الصحيح: ' + q.options[q.answer];
+    if (q.type === 'tf') {
+      fb.textContent = '✗ إجابة خاطئة. ' + (q.correction || '');
+    } else {
+      fb.textContent = '✗ إجابة خاطئة. الصحيح: ' + q.options[q.answer];
+    }
   }
   document.getElementById('nextBtn').style.display = 'block';
 }
@@ -566,7 +705,7 @@ function showResult() {
   document.getElementById('resWrong').textContent = total - score;
   document.getElementById('resTotal').textContent = total;
 
-  const titles = [
+const titles = [
     [90, ', 🏆 ممتاز! أداء رائع, مهكر المادة'],
     [75, '🌟 جيد جداً! ,بس بعد ينرادلك'],
     [60, '👍 جيد! راجع الأخطاء'],
@@ -591,8 +730,9 @@ function showResult() {
       div.innerHTML = `<div class="ri-q">${i+1}. ${qShort}</div>
         <div class="ri-ans">إجابتك: <span>${ua.userAns}</span> ✓</div>`;
     } else {
+      const correctText = ua.q.type === 'tf' ? (ua.q.answer ? 'True' : 'False') : ua.q.options[ua.q.answer];
       div.innerHTML = `<div class="ri-q">${i+1}. ${qShort}</div>
-        <div class="ri-ans">إجابتك: <span class="wrong-ans">${ua.userAns}</span> — الصحيح: <span>${ua.q.options[ua.q.answer]}</span></div>`;
+        <div class="ri-ans">إجابتك: <span class="wrong-ans">${ua.userAns}</span> — الصحيح: <span>${correctText}</span></div>`;
     }
     list.appendChild(div);
   });
@@ -647,3 +787,10 @@ function shuffle(arr) {
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
